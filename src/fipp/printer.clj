@@ -9,10 +9,9 @@
 
 ;;; Some deque utils (using RRB trees)
 
-(def empty-deque [])
 
 (def conjl (fn [deque x] (fv/catvec [x] (or deque []))))
-(def conjr (fnil conj empty-deque))
+(def conjr (fnil conj []))
 
 (defn conjlr [l deque r]
   (conj (conjl deque l) r))
@@ -108,7 +107,7 @@
         (if (= op :begin)
           ;; Buffer groups
           (let [position* (+ right *width*)
-                buffer {:position position* :nodes empty-deque}
+                buffer {:position position* :nodes []}
                 state* {:position position* :buffers [buffer]}]
             [state* nil])
           ;; Emit unbuffered
@@ -120,7 +119,7 @@
                 begin {:op :begin :right right}
                 nodes (conjlr begin (:nodes buffer) node)]
             (if (empty? buffers*)
-              [{:position 0 :buffers empty-deque} nodes]
+              [{:position 0 :buffers []} nodes]
               (let [buffers** (update-right buffers* update-in [:nodes]
                                             fv/catvec nodes)]
                 [(assoc state :buffers buffers**) nil])))
@@ -128,7 +127,7 @@
           (loop [position* position
                  buffers* (if (= op :begin)
                             (conjr buffers {:position (+ right *width*)
-                                            :nodes empty-deque})
+                                            :nodes []})
                             (update-right buffers update-in [:nodes]
                                           conjr node))
                  emit nil]
@@ -142,12 +141,12 @@
                     emit* (concat emit [begin] (:nodes buffer))]
                 (if (empty? buffers**)
                   ;; Root buffered group
-                  [{:position 0 :buffers empty-deque} emit*]
+                  [{:position 0 :buffers []} emit*]
                   ;; Interior group
                   (let [position** (:position (first buffers**))]
                     (recur position** buffers** emit*))))))
           )))
-    {:position 0 :buffers empty-deque}))
+    {:position 0 :buffers []}))
 
 
 ;;; Format the annotated document stream.
