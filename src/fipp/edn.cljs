@@ -37,7 +37,7 @@
     (let [kvps (for [[k v] m]
                  [:span (-pretty k ctx) " " (pretty v ctx)])
           doc [:group "{" [:align (interpose [:span "," :line] kvps)]  "}"]]
-      (if (record? m)
+      (if (implements? IRecord m)
         [:span "#" (-> m class .getName) doc]
         doc)))
 
